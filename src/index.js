@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import UserRoutes from "./routes/user.routes.js";
+import assignmentRouter from "./routes/assignment.routes.js";
 
 dotenv.config({ quiet: true });
 const app = express();
@@ -30,6 +31,7 @@ app.use((err, req, res, next) => {
 
 // Routes
 app.use("/user", UserRoutes);
+app.use("/assigment", assignmentRouter);
 
 // Connect DB and start server
 const PORT = process.env.PORT || 5000;
