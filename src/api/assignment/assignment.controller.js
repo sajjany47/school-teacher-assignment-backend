@@ -82,7 +82,7 @@ export const listAssignments = async (req, res) => {
     const page = reqData.page;
     const limit = reqData.limit;
     const start = page * limit - limit;
-    const query = [{ isDeleted: false }];
+    const query = [{ isdeleted: false }];
     if (reqData.hasOwnProperty("status") && reqData.status) {
       query.push({ status: reqData.status });
     }
