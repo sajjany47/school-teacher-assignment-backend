@@ -5,6 +5,7 @@ import { userSigninValidator, userSignUpValidator } from "./auth.validatior.js";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import Submission from "../submission/submission.model.js";
 
 export const userSignUp = async (req, res) => {
   try {
@@ -98,6 +99,64 @@ export const login = async (req, res) => {
           accessToken: accessToken,
         },
       });
+  } catch (error) {
+    ErrorResponse(error, res);
+  }
+};
+
+//  LIST + FILTER + PAGINATION
+export const userList = async (req, res) => {
+  try {
+    const reqData = req.body;
+    const page = reqData.page;
+    const limit = reqData.limit;
+    const start = page * limit - limit;
+    const query = [];
+    if (reqData.hasOwnProperty("position") && reqData.position) {
+      query.push({ position: reqData.position });
+    }
+
+    const data = await Promise.all([
+      User.countDocuments([
+        { $match: query.length > 0 ? { $and: query } : {} },
+      ]),
+      User.aggregate([
+        { $match: query.length > 0 ? { $and: query } : {} },
+        {
+          $sort: reqData.hasOwnProperty("sort")
+            ? reqData.sort
+            : {
+                name: 1,
+              },
+        },
+        { $skip: start },
+        { $limit: limit },
+      ]),
+    ]);
+    let newData = data[1];
+    if (reqData.hasOwnProperty("assignmentId") && reqData.assignmentId) {
+      const findAssignmentSubmission = await Submission.find({
+        assignmentId: new mongoose.Types.ObjectId(reqData.assignmentId),
+      });
+      newData = data[1].map((item) => {
+        const findStudent = findAssignmentSubmission.find(
+          (elm) => elm.studentId.toString() === item?._id.toString()
+        );
+        return {
+          _id: item._id,
+          name: item.name,
+          position: item.position,
+          email: item.email,
+          isSubmit: findStudent ? true : false,
+        };
+      });
+    }
+
+    res.status(StatusCodes.OK).json({
+      message: "Data fetched successfully",
+      data: newData,
+      count: data[0],
+    });
   } catch (error) {
     ErrorResponse(error, res);
   }
