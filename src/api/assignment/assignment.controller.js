@@ -120,10 +120,10 @@ export const listAssignments = async (req, res) => {
         return {
           ...item,
           submissionDetails: findAssignment ?? null,
-          status: findAssignment.status,
-          marks:
-            `${findAssignment.marksObtained}/${findAssignment.totalMarks}` ??
-            "",
+          status: findAssignment?.status ?? null,
+          marks: findAssignment?.marksObtained
+            ? `${findAssignment.marksObtained}/${findAssignment.totalMarks}`
+            : "",
           isSubmit: findAssignment ? true : false,
         };
       });
