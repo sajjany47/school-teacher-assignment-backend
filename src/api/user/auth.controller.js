@@ -147,6 +147,8 @@ export const userList = async (req, res) => {
           name: item.name,
           position: item.position,
           email: item.email,
+          status: findStudent.status,
+          marks: `${findStudent.marksObtained}/${findStudent.totalMarks}` ?? "",
           isSubmit: findStudent ? true : false,
         };
       });

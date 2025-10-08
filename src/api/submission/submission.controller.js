@@ -6,6 +6,7 @@ import {
   reviewValidator,
   submissionValidationSchema,
 } from "./submission.validator.js";
+import { ErrorResponse } from "../../util.js";
 
 export const submitAssignment = async (req, res) => {
   try {
@@ -49,7 +50,7 @@ export const reviewSubmission = async (req, res) => {
   try {
     const validatedData = await reviewValidator.validate(req.body);
 
-    const { submissionId, marksObtained, teacherId } = validatedData;
+    const { submissionId, marksObtained, totalMarks } = validatedData;
 
     const submission = await Submission.findById(submissionId);
     if (!submission) {
@@ -60,10 +61,10 @@ export const reviewSubmission = async (req, res) => {
     }
 
     submission.marksObtained = marksObtained;
-    submission.reviewedBy = teacherId;
+    submission.totalMarks = totalMarks;
+    submission.reviewedBy = req.user._id;
     submission.status = "reviewed";
     submission.reviewedAt = new Date();
-    submission.feedback = feedback;
 
     await submission.save();
 
@@ -80,9 +81,7 @@ export const getStudentAssignmentDetails = async (req, res) => {
   try {
     const { assignmentId, studentId } = req.params;
 
-    const assignment = await Assignment.findById(assignmentId)
-      .populate("createdBy", "name position email")
-      .lean();
+    const assignment = await Assignment.findById(assignmentId);
 
     if (!assignment) {
       return ErrorResponse(
@@ -94,9 +93,7 @@ export const getStudentAssignmentDetails = async (req, res) => {
     const submission = await Submission.findOne({
       assignmentId,
       studentId,
-    })
-      .populate("reviewedBy", "name position email")
-      .lean();
+    });
 
     const questionsWithAnswers = assignment.questions.map((q) => {
       const answer = submission?.answers?.find(
@@ -120,6 +117,7 @@ export const getStudentAssignmentDetails = async (req, res) => {
       createdBy: assignment.createdBy,
       questions: questionsWithAnswers,
       submissionStatus: submission ? submission.status : "not_submitted",
+      submissionId: submission._id,
       marksObtained: submission ? submission.marksObtained : null,
       reviewedBy: submission ? submission.reviewedBy : null,
       submittedAt: submission ? submission.submittedAt : null,

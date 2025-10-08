@@ -15,10 +15,7 @@ export const submissionValidationSchema = yup.object().shape({
     .array()
     .of(
       yup.object().shape({
-        questionId: yup
-          .string()
-          .required("Question ID is required")
-          .matches(/^[0-9a-fA-F]{24}$/, "Invalid question ID format"),
+        questionId: yup.string().required("Question ID is required"),
         answerText: yup
           .string()
           .trim()
@@ -35,8 +32,6 @@ export const reviewValidator = yup.object().shape({
     .number()
     .min(0, "Marks cannot be negative")
     .required("Marks are required"),
-  teacherId: yup
-    .string()
-    .required("Teacher ID is required")
-    .matches(/^[0-9a-fA-F]{24}$/, "Invalid teacher ID format"),
+  totalMarks: yup.string().required("Total marks is required"),
+  marksObtained: yup.string().required("mMrks Obtained is required"),
 });

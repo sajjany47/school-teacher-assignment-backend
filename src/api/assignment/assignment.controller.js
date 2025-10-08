@@ -2,6 +2,8 @@ import { StatusCodes } from "http-status-codes";
 import { ErrorResponse } from "../../util.js";
 import Assignment from "./assignment.model.js";
 import { assignmentSchema } from "./assignment.validator.js";
+import Submission from "../submission/submission.model.js";
+import mongoose from "mongoose";
 
 export const addAssignment = async (req, res) => {
   try {
@@ -105,9 +107,30 @@ export const listAssignments = async (req, res) => {
       ]),
     ]);
 
+    let newData = data[1];
+
+    if (req.user.position === "student") {
+      const findAssignmentSubmission = await Submission.find({
+        studentId: new mongoose.Types.ObjectId(req.user._id),
+      });
+      newData = data[1].map((item) => {
+        const findAssignment = findAssignmentSubmission.find(
+          (elm) => elm.assignmentId.toString() === item?._id.toString()
+        );
+        return {
+          ...item,
+          submissionDetails: findAssignment ?? null,
+          status: findAssignment.status,
+          marks:
+            `${findAssignment.marksObtained}/${findAssignment.totalMarks}` ??
+            "",
+          isSubmit: findAssignment ? true : false,
+        };
+      });
+    }
     res.status(StatusCodes.OK).json({
       message: "Data fetched successfully",
-      data: data[1],
+      data: newData,
       count: data[0],
     });
   } catch (error) {

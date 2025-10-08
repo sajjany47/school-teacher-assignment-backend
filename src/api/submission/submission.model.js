@@ -41,6 +41,10 @@ const submissionSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    totalMarks: {
+      type: Number,
+      default: null,
+    },
     reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", // teacher
